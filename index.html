@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Event RSVP Application</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+      form {
+        margin: 20px auto;
+        width: 50%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+      input[type="text"],
+      input[type="number"],
+      input[type="date"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+      }
+      button[type="submit"] {
+        background-color: #4caf50;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      button[type="submit"]:hover {
+        background-color: #3e8e41;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Event RSVP Application</h1>
+
+    <!-- Create Event Form -->
+    <form id="createEventForm">
+      <h2>Create Event</h2>
+      <label for="eventId">Event ID (1-100):</label>
+      <input
+        type="number"
+        id="eventId"
+        min="1"
+        max="100"
+        required
+      /><br /><br />
+      <label for="eventName">Event Name:</label>
+      <input type="text" id="eventName" required /><br /><br />
+      <label for="eventDate">Event Date:</label>
+      <input type="date" id="eventDate" required /><br /><br />
+      <button type="submit">Create Event</button>
+    </form>
+
+    <!-- RSVP Form -->
+    <form id="rsvpForm">
+      <h2>RSVP to an Event</h2>
+      <label for="eventIdToRsvp">Event ID:</label>
+      <input type="number" id="eventIdToRsvp" required /><br /><br />
+      <label for="name">Your Name:</label>
+      <input type="text" id="name" required /><br /><br />
+      <label for="phone">Your Phone Number:</label>
+      <input type="text" id="phone" required /><br /><br />
+      <button type="submit">RSVP</button>
+    </form>
+
+    <!-- Get Attendees Form -->
+    <form id="getAttendeesForm">
+      <h2>Get Attendees for an Event</h2>
+      <label for="eventIdToGetAttendees">Event ID:</label>
+      <input type="number" id="eventIdToGetAttendees" required /><br /><br />
+      <button type="submit">Get Attendees</button>
+    </form>
+
+    <script>
+      // Create Event
+      document.getElementById("createEventForm").onsubmit = async function (e) {
+        e.preventDefault();
+        const eventId = document.getElementById("eventId").value;
+        const eventName = document.getElementById("eventName").value;
+        const eventDate = document.getElementById("eventDate").value;
+        const res = await fetch("/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: eventId,
+            name: eventName,
+            date: eventDate,
+          }),
+        });
+        const data = await res.json();
+        alert(data.message);
+      };
+
+      // RSVP
+      document.getElementById("rsvpForm").onsubmit = async function (e) {
+        e.preventDefault();
+        const eventIdToRsvp = document.getElementById("eventIdToRsvp").value;
+        const name = document.getElementById("name").value;
+        const phone = document.getElementById("phone").value;
+        const res = await fetch(`/events/${eventIdToRsvp}/rsvp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: eventIdToRsvp, name: name, phone: phone }),
+        });
+        const data = await res.json();
+        alert(data.message);
+      };
+
+      // Get Attendees
+      document.getElementById("getAttendeesForm").onsubmit = async function (
+        e
+      ) {
+        e.preventDefault();
+        const eventIdToGetAttendees = document.getElementById(
+          "eventIdToGetAttendees"
+        ).value;
+        const res = await fetch(`/events/${eventIdToGetAttendees}/attendees`);
+        const data = await res.json();
+        const attendeesList = document.getElementById("attendeesList");
+        attendeesList.innerHTML = "";
+        data.forEach((attendee) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = `${attendee.name} - ${attendee.phone}`;
+          attendeesList.appendChild(listItem);
+        });
+      };
+    </script>
+
+    <!-- Display Attendees List -->
+    <h2>Attendees:</h2>
+    <ul id="attendeesList"></ul>
+  </body>
+</html>
